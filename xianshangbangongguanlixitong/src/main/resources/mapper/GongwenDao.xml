@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.GongwenDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.jingli_id as jingliId
+        ,a.bumen_types as bumenTypes
+        ,a.gongwen_name as gongwenName
+        ,a.gongwen_file as gongwenFile
+        ,a.gongwen_types as gongwenTypes
+        ,a.insert_time as insertTime
+        ,a.gongwen_content as gongwenContent
+        ,a.gongwen_jieshouren as gongwenJieshouren
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.GongwenView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,jingli.jingli_uuid_number as jingliUuidNumber
+        ,jingli.jingli_name as jingliName
+        ,jingli.jingli_phone as jingliPhone
+        ,jingli.jingli_id_number as jingliIdNumber
+        ,jingli.jingli_photo as jingliPhoto
+        ,jingli.jingli_email as jingliEmail
+
+        FROM gongwen  a
+        left JOIN jingli jingli ON a.jingli_id = jingli.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.jingliId != null and params.jingliId != ''">
+                and (
+                    a.jingli_id = #{params.jingliId}
+                )
+            </if>
+            <if test="params.bumenTypes != null and params.bumenTypes != ''">
+                and a.bumen_types = #{params.bumenTypes}
+            </if>
+            <if test=" params.gongwenName != '' and params.gongwenName != null and params.gongwenName != 'null' ">
+                and a.gongwen_name like CONCAT('%',#{params.gongwenName},'%')
+            </if>
+            <if test="params.gongwenTypes != null and params.gongwenTypes != ''">
+                and a.gongwen_types = #{params.gongwenTypes}
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+            <if test=" params.gongwenContent != '' and params.gongwenContent != null and params.gongwenContent != 'null' ">
+                and a.gongwen_content like CONCAT('%',#{params.gongwenContent},'%')
+            </if>
+            <if test=" params.gongwenJieshouren != '' and params.gongwenJieshouren != null and params.gongwenJieshouren != 'null' ">
+                and a.gongwen_jieshouren like CONCAT('%',#{params.gongwenJieshouren},'%')
+            </if>
+
+                <!-- 判断经理的id不为空 -->
+            <if test=" params.jingliIdNotNull != '' and params.jingliIdNotNull != null and params.jingliIdNotNull != 'null' ">
+                and a.jingli_id IS NOT NULL
+            </if>
+            <if test=" params.jingliUuidNumber != '' and params.jingliUuidNumber != null and params.jingliUuidNumber != 'null' ">
+                and jingli.jingli_uuid_number like CONCAT('%',#{params.jingliUuidNumber},'%')
+            </if>
+            <if test=" params.jingliName != '' and params.jingliName != null and params.jingliName != 'null' ">
+                and jingli.jingli_name like CONCAT('%',#{params.jingliName},'%')
+            </if>
+            <if test=" params.jingliPhone != '' and params.jingliPhone != null and params.jingliPhone != 'null' ">
+                and jingli.jingli_phone like CONCAT('%',#{params.jingliPhone},'%')
+            </if>
+            <if test=" params.jingliIdNumber != '' and params.jingliIdNumber != null and params.jingliIdNumber != 'null' ">
+                and jingli.jingli_id_number like CONCAT('%',#{params.jingliIdNumber},'%')
+            </if>
+            <if test=" params.jingliEmail != '' and params.jingliEmail != null and params.jingliEmail != 'null' ">
+                and jingli.jingli_email like CONCAT('%',#{params.jingliEmail},'%')
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
